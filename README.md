@@ -15,16 +15,16 @@ A terminal-based wordlist generator written in Go. Combines user-provided words 
 ### Word Mixer
 - Input words by typing them or loading from a file
 - **4 casing modes** (select any combination):
-  - PascalCase — `AppleBanana`
-  - camelCase — `appleBanana`
-  - ALL CAPS — `APPLEBANANA`
-  - all lowercase — `applebanana`
+  - PascalCase — `CinoCat`
+  - camelCase — `cinoCat`
+  - ALL CAPS — `CINOCAT`
+  - all lowercase — `cinocat`
 - **Combination depth** — choose 1-word, 2-word, 2+3-word, all 1..N, or custom
-- **Number appending** — multiple ranges (`1-100`, `1900-2030`, `69`)
+- **Number appending** — multiple ranges (`1-100`, `1900-2030`, `18`)
 - **Special characters** — `! ? $ . @ # * & + =` with combinations of 1–8 chars
 - **Max length cap** — skip combos exceeding a character limit
 - **Deduplication** — no duplicate output words
-- Preserves original word casing (e.g. `PQS` stays `PQS`, not `Pqs`)
+- Preserves original word casing (e.g. `ABC` stays `ABC`, not `Abc`)
 
 ### Numeric Generator
 - Generates **ALL** digit combinations (0–9) of a given length
