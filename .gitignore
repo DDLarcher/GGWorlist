@@ -1,0 +1,35 @@
+# Binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.bin
+
+# Build output
+/wordlist-generator
+/dist/
+
+# Test / generated output directories
+output/
+output_*/
+bench/
+output_smoke/
+output_test/
+
+# Go workspace files
+go.work
+go.work.sum
+
+# IDE / editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# OS files
+*.tmp
+*.log
