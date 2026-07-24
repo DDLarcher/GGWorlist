@@ -1,3 +1,6 @@
+// Package mixer provides word combination generation with multiple casing
+// modes, number appending, special character combinations, and configurable
+// combination depth. It supports permutations and subsets of input words.
 package mixer
 
 import (
@@ -12,22 +15,26 @@ import (
 	"wordlist-generator/internal/ui"
 )
 
+// specialChars defines the available special characters that can be appended
 const specialChars = "!?$.@#*&+="
 
+// Config holds all parameters for a mixer generation run.
 type Config struct {
-	Words      []string
-	MaxCap     int
-	CasingIdxs []int
-	AppendNums bool
-	Numbers    []int
-	AppendSpec bool
-	SpecCombos []string
-	MaxSpecLen int
-	Sizes      []int
-	Combos     [][]string
-	MaxBytes   uint64
+	Words      []string    // input words to combine
+	MaxCap     int          // max character length per output word (0 = no cap)
+	CasingIdxs []int        // which casing modes to apply (0=Pascal, 1=camel, 2=UPPER, 3=lower)
+	AppendNums bool        // whether to append numbers to words
+	Numbers    []int       // the numbers to append
+	AppendSpec bool        // whether to append special character combinations
+	SpecCombos []string    // pre-computed special character combinations
+	MaxSpecLen int         // max number of special chars to combine
+	Sizes      []int       // combination sizes (1=single, 2=two-word, 3=three-word, etc.)
+	Combos     [][]string  // pre-computed word combinations
+	MaxBytes   uint64      // max total output size in bytes (0 = no cap)
 }
 
+// toPascal capitalizes the first letter and preserves the rest of the word.
+// Uses []rune for unicode safety (handles multi-byte characters like é, ñ).
 func toPascal(w string) string {
 	if w == "" {
 		return ""
@@ -36,6 +43,8 @@ func toPascal(w string) string {
 	return strings.ToUpper(string(r[0])) + string(r[1:])
 }
 
+// toCamelFirst lowercases the first letter and preserves the rest.
+// Used for the first word in camelCase mode.
 func toCamelFirst(w string) string {
 	if w == "" {
 		return ""
@@ -44,6 +53,8 @@ func toCamelFirst(w string) string {
 	return strings.ToLower(string(r[0])) + string(r[1:])
 }
 
+// ApplyCasing applies a casing mode to a slice of words.
+// casing: 0=PascalCase, 1=camelCase, 2=UPPER, 3=lower
 func ApplyCasing(words []string, casing int) []string {
 	out := make([]string, len(words))
 	for i, w := range words {
@@ -65,6 +76,7 @@ func ApplyCasing(words []string, casing int) []string {
 	return out
 }
 
+// CasingName returns the display name for a casing mode index.
 func CasingName(c int) string {
 	switch c {
 	case 0:
@@ -79,6 +91,8 @@ func CasingName(c int) string {
 	return "?"
 }
 
+// GeneratePermutations returns all permutations of the input items using
+// Heap's algorithm. Returns n! permutations for n items.
 func GeneratePermutations(items []string) [][]string {
 	n := len(items)
 	if n == 0 {
@@ -112,6 +126,9 @@ func GeneratePermutations(items []string) [][]string {
 	return result
 }
 
+// Subsets returns all subsets of size k from n elements (as index slices).
+// Each subset is a slice of indices into the original n elements.
+// Returns nil if k > n or k < 1.
 func Subsets(n, k int) [][]int {
 	if k > n || k < 1 {
 		return nil
@@ -136,6 +153,9 @@ func Subsets(n, k int) [][]int {
 	return result
 }
 
+// AllCombos generates all word combinations for the given sizes.
+// For each size k, it generates all k-element subsets of the words,
+// then all permutations of each subset.
 func AllCombos(words []string, sizes []int) [][]string {
 	n := len(words)
 	var combos [][]string
@@ -155,6 +175,9 @@ func AllCombos(words []string, sizes []int) [][]string {
 	return combos
 }
 
+// SpecialSubsets generates all combinations of special characters up to maxLen.
+// For each subset size k (1..maxLen), it generates all permutations of each
+// k-element subset of the character set.
 func SpecialSubsets(chars string, maxLen int) []string {
 	var result []string
 	n := len(chars)
@@ -173,6 +196,9 @@ func SpecialSubsets(chars string, maxLen int) []string {
 	return result
 }
 
+// ParseNumberRanges parses a string of number ranges into a slice of ints.
+// Supported formats: "1-100" (range), "69" (single), "1-10,1900-2030,69" (multiple).
+// Reversed ranges (e.g. "5-1") are automatically corrected.
 func ParseNumberRanges(s string) ([]int, error) {
 	var nums []int
 	parts := strings.FieldsFunc(s, func(r rune) bool {
@@ -329,6 +355,7 @@ func chooseDepth(reader *bufio.Reader, n int) []int {
 	}
 }
 
+// Display prints the mixer configuration to stdout in a formatted block.
 func (c *Config) Display() {
 	fmt.Println()
 	fmt.Println(ui.Colorize(ui.Yellow+ui.Bold, "Configuration"))
@@ -369,6 +396,8 @@ func (c *Config) Display() {
 	}()))
 }
 
+// EstimateOutputs calculates the total number of output entries that will
+// be generated, based on combos, casings, specials, and numbers.
 func (c *Config) EstimateOutputs() uint64 {
 	n := uint64(len(c.Combos)) * uint64(len(c.CasingIdxs))
 	if c.AppendSpec {
@@ -380,10 +409,15 @@ func (c *Config) EstimateOutputs() uint64 {
 	return n
 }
 
+// Generate runs the mixer and writes output to files. Uses stderr for progress.
 func (c *Config) Generate(outDir string) (uint64, int, time.Duration, error) {
 	return c.GenerateWithProgress(outDir, nil)
 }
 
+// GenerateWithProgress runs the mixer with an optional progress callback.
+// The progressFn is called every ProgressInterval() words with the current
+// count and file number. If progressFn is nil, progress is written to stderr.
+// Returns: words written, files created, elapsed time, and any error.
 func (c *Config) GenerateWithProgress(outDir string, progressFn func(written uint64, files int)) (uint64, int, time.Duration, error) {
 	c.Display()
 	fmt.Println()
@@ -465,10 +499,14 @@ func (c *Config) GenerateWithProgress(outDir string, progressFn func(written uin
 	return written, fw.Files, elapsed, nil
 }
 
+// DedupWords removes duplicate words, strips whitespace and BOM markers.
+// This is the exported wrapper around dedupWords for use by external packages.
 func DedupWords(raw []string) []string {
 	return dedupWords(raw)
 }
 
+// Run is the interactive entry point for the word mixer. It collects all
+// configuration via interactive prompts, then generates and writes the output.
 func Run(reader *bufio.Reader, outDir string, maxBytes uint64) {
 	ui.PrintHeader("Word Mixer Mode")
 
