@@ -1,3 +1,6 @@
+// Package numeric provides exhaustive digit combination generation.
+// It generates all digit strings (0-9) of a given length, skipping any
+// with 3 identical consecutive digits. Includes overflow-safe size estimation.
 package numeric
 
 import (
@@ -11,6 +14,11 @@ import (
 	"wordlist-generator/internal/ui"
 )
 
+// countValid calculates the number of valid digit strings of length n
+// (no 3 identical consecutive digits) using a recurrence relation:
+// a(n) = strings ending in a single (non-paired) last digit
+// b(n) = strings ending with a pair (last 2 same)
+// a(1)=10, b(1)=0; a(n) = (a+b)*9; b(n) = a(n-1)
 func countValid(n int) uint64 {
 	if n <= 0 {
 		return 0
@@ -28,14 +36,20 @@ func countValid(n int) uint64 {
 	return a + b
 }
 
+// CountValid is the exported wrapper around countValid.
 func CountValid(n int) uint64 {
 	return countValid(n)
 }
 
+// RunNonInteractive generates digit combinations and writes them to files.
+// Uses stderr for progress output. No user interaction.
 func RunNonInteractive(outDir string, maxBytes uint64, n int) {
 	RunNonInteractiveWithProgress(outDir, maxBytes, n, nil)
 }
 
+// RunNonInteractiveWithProgress generates digit combinations with an optional
+// progress callback. The progressFn is called periodically with the current
+// word count and file number. If nil, progress goes to stderr.
 func RunNonInteractiveWithProgress(outDir string, maxBytes uint64, n int, progressFn func(written uint64, files int)) {
 	total := countValid(n)
 	bytesPerWord := uint64(n + 1)
@@ -136,6 +150,8 @@ func RunNonInteractiveWithProgress(outDir string, maxBytes uint64, n int, progre
 	ui.PrintSummary(written, fw.Files, elapsed, outDir)
 }
 
+// Run is the interactive entry point for the numeric generator.
+// It collects configuration via prompts, shows estimates, and generates.
 func Run(reader *bufio.Reader, outDir string, maxBytes uint64) {
 	ui.PrintHeader("Numeric Generator Mode")
 	fmt.Println("Generates ALL digit combinations (0-9) of a given length,")

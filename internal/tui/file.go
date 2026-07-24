@@ -7,6 +7,8 @@ import (
 	"strings"
 )
 
+// readFileImpl reads a file with path traversal and size validation.
+// Rejects paths containing "..", directories, and files larger than 100 MB.
 func readFileImpl(path string) ([]byte, error) {
 	clean := filepath.Clean(path)
 	if strings.Contains(clean, "..") {

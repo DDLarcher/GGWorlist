@@ -1,3 +1,7 @@
+// Package tui implements the interactive terminal UI using bubbletea.
+// It provides a multi-screen model for collecting generation parameters
+// (mode, output dir, words, casings, numbers, specials, depth, length)
+// and launching generation in a goroutine.
 package tui
 
 import (
@@ -75,6 +79,7 @@ const logo = `   ___________      __            _____     __
  \___/\___/ |__/|__/\___/_/  \_,_/_/_/___/\__/
                                               `
 
+// menuItem implements the list.Item interface for bubbletea list items.
 type menuItem struct {
 	title string
 	desc  string
@@ -84,6 +89,7 @@ func (m menuItem) Title() string       { return m.title }
 func (m menuItem) Description() string { return m.desc }
 func (m menuItem) FilterValue() string { return m.title }
 
+// generateMsg is sent when generation completes, carrying the final stats.
 type generateMsg struct {
 	written   uint64
 	files     int
@@ -93,11 +99,13 @@ type generateMsg struct {
 	capped    bool
 }
 
+// progressMsg is sent during generation to update the progress display.
 type progressMsg struct {
 	written uint64
 	files   int
 }
 
+// screen identifies which TUI screen is currently active.
 type screen int
 
 const (
@@ -121,6 +129,7 @@ const (
 	screenDone
 )
 
+// Model is the main bubbletea model holding all TUI state.
 type Model struct {
 	screen         screen
 	prevScreen     screen
@@ -147,6 +156,7 @@ type Model struct {
 	height         int
 }
 
+// New creates a new TUI model initialized to the mode selection screen.
 func New() Model {
 	ti := textinput.New()
 	ti.CharLimit = 1000
