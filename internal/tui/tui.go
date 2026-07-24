@@ -399,7 +399,7 @@ func (m Model) viewLoadedWords() string {
 }
 
 func (m Model) viewCasingList() string {
-	casings := []string{"PascalCase (AppleBanana)", "camelCase (appleBanana)", "ALL CAPS (APPLEBANANA)", "all lowercase (applebanana)"}
+	casings := []string{"PascalCase (CinoCat)", "camelCase (cinoCat)", "ALL CAPS (CINOCAT)", "all lowercase (cinocat)"}
 	lines := []string{}
 	for i, c := range casings {
 		marker := "○"
@@ -738,10 +738,10 @@ func (m Model) updateMixerMaxCap(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m *Model) initCasingList() {
 	items := []list.Item{
-		menuItem{"PascalCase", "AppleBanana"},
-		menuItem{"camelCase", "appleBanana"},
-		menuItem{"ALL CAPS", "APPLEBANANA"},
-		menuItem{"all lowercase", "applebanana"},
+		menuItem{"PascalCase", "CinoCat"},
+		menuItem{"camelCase", "cinoCat"},
+		menuItem{"ALL CAPS", "CINOCAT"},
+		menuItem{"all lowercase", "cinocat"},
 	}
 	m.initList("Choose Casing Modes (space to toggle, enter to confirm)", items, 50)
 }
