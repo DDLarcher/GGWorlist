@@ -36,22 +36,29 @@ A terminal-based wordlist generator written in Go. Combines user-provided words 
 - **Max total output size** — set a GB cap or leave empty for no limit
 - Output split into files of max 1 GB each (`wordlist_001.txt`, `wordlist_002.txt`, ...)
 - One word per line
-- Colored terminal UI
+- **Bubbletea TUI** — interactive terminal UI with keyboard navigation, list selection, and text input
+- **CLI flags** — fully scriptable non-interactive mode
+- Colored output (bright light blue `#22CCFF` on black, user input in white)
+- `--no-color` flag for piping or old terminals
 - Summary box with stats after completion
 
 ## Requirements
 
-- **Go 1.21 or newer** — [Download Go](https://go.dev/dl/)
+- **Go 1.24 or newer** — [Download Go](https://go.dev/dl/)
 
-No external dependencies. Uses only the Go standard library.
+### Dependencies
+
+- [bubbletea](https://github.com/charmbracelet/bubbletea) — TUI framework
+- [bubbles](https://github.com/charmbracelet/bubbles) — TUI components (list, text input)
+- [lipgloss](https://github.com/charmbracelet/lipgloss) — terminal styling
 
 ## Installation
 
 ### From source
 
 ```bash
-git clone https://github.com/<your-username>/wordlist-generator.git
-cd wordlist-generator
+git clone https://github.com/DDLarcher/GGWorlist.git
+cd GGWorlist
 go build -o wordlist-generator ./cmd/wordlist-generator
 ```
 
@@ -63,20 +70,29 @@ go install ./cmd/wordlist-generator@latest
 
 ## Usage
 
-### Interactive mode
+### Interactive mode (Bubbletea TUI)
 
 ```bash
 ./wordlist-generator
 ```
 
-The program will guide you through an interactive menu:
+Launches a full-screen interactive TUI with keyboard navigation:
 
-1. **Choose mode** — Word mixer or Numeric generator
+1. **Choose mode** — Word mixer or Numeric generator (arrow keys + enter)
 2. **Output directory** — where files are saved (default: `output`)
 3. **Max total output in GB** — size cap or empty for no limit
-4. Mode-specific options (words, casings, numbers, specials / length)
-5. Generation runs with a live progress bar
-6. A summary box shows stats and output files when done
+4. Mode-specific options:
+   - **Mixer**: input source, words, max length cap, casing modes (space to toggle), number ranges, special chars, combination depth
+   - **Numeric**: string length (1–16)
+5. Generation runs with a live progress display
+6. A styled summary box shows stats and output files when done
+
+**TUI controls:**
+- `↑` / `↓` — navigate lists
+- `space` — toggle selection (casing modes)
+- `enter` — confirm / proceed
+- `esc` — go back
+- `ctrl+c` — quit
 
 ### Non-interactive mode (CLI flags)
 
@@ -122,7 +138,7 @@ Sample output:
 ```
 DanieleSuzanne
 DanieleSuzanne!
-SuzannePQS!? 
+SuzannePQS!?
 DanieleSuzannePQS
 DANIELESUZANNE2026$
 ...
@@ -155,18 +171,22 @@ Generates all 94,551,300 valid 8-digit combinations (no 3 consecutive identical)
 wordlist-generator/
 ├── cmd/
 │   └── wordlist-generator/
-│       └── main.go            # Entry point, mode selector
+│       └── main.go            # Entry point, CLI flags, TUI launcher
 ├── internal/
+│   ├── tui/
+│   │   ├── tui.go             # Bubbletea TUI models (all screens)
+│   │   └── file.go            # File reading helper
 │   ├── ui/
-│   │   ├── ui.go              # Colors, menus, file writer, summary box
+│   │   ├── ui.go              # ANSI colors, file writer, CLI summary box
 │   │   └── ui_test.go         # UI unit tests
 │   ├── mixer/
-│   │   ├── mixer.go           # Word mixer logic
+│   │   ├── mixer.go           # Word mixer logic, Config, Generate
 │   │   └── mixer_test.go      # Mixer unit tests
 │   └── numeric/
 │       ├── numeric.go         # Numeric generator logic
 │       └── numeric_test.go    # Numeric unit tests
 ├── go.mod
+├── go.sum
 ├── .gitignore
 ├── CHANGELOG.md
 ├── LICENSE
@@ -189,6 +209,15 @@ Tests cover:
 - Numeric count validation (brute-force cross-check)
 - Byte formatting
 - Path traversal validation
+
+## Security
+
+- Output path validation (rejects `..` and paths outside CWD/home)
+- Input file path validation and size limit (100 MB)
+- File overwrite warning before generating
+- Write error detection and abort
+- Overflow-safe size calculations
+- EOF handling on input
 
 ## Cross-Platform
 
