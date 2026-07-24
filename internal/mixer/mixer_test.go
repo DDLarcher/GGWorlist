@@ -11,10 +11,10 @@ func TestToPascal(t *testing.T) {
 		input string
 		want  string
 	}{
-		{"apple", "Apple"},
-		{"banana", "Banana"},
-		{"PQS", "PQS"},
-		{"pqs", "Pqs"},
+		{"cino", "Cino"},
+		{"cat", "Cat"},
+		{"ABC", "ABC"},
+		{"abc", "Abc"},
 		{"", ""},
 		{"café", "Café"},
 		{"niño", "Niño"},
@@ -33,9 +33,9 @@ func TestToCamelFirst(t *testing.T) {
 		input string
 		want  string
 	}{
-		{"Apple", "apple"},
-		{"BANANA", "bANANA"},
-		{"PQS", "pQS"},
+		{"Cino", "cino"},
+		{"CAT", "cAT"},
+		{"ABC", "aBC"},
 		{"", ""},
 		{"Café", "café"},
 	}
@@ -48,25 +48,25 @@ func TestToCamelFirst(t *testing.T) {
 }
 
 func TestApplyCasing(t *testing.T) {
-	words := []string{"apple", "banana", "PQS"}
+	words := []string{"cino", "cat", "ABC"}
 
 	pascal := ApplyCasing(words, 0)
-	if !reflect.DeepEqual(pascal, []string{"Apple", "Banana", "PQS"}) {
+	if !reflect.DeepEqual(pascal, []string{"Cino", "Cat", "ABC"}) {
 		t.Errorf("PascalCase: got %v", pascal)
 	}
 
 	camel := ApplyCasing(words, 1)
-	if !reflect.DeepEqual(camel, []string{"apple", "Banana", "PQS"}) {
+	if !reflect.DeepEqual(camel, []string{"cino", "Cat", "ABC"}) {
 		t.Errorf("camelCase: got %v", camel)
 	}
 
 	upper := ApplyCasing(words, 2)
-	if !reflect.DeepEqual(upper, []string{"APPLE", "BANANA", "PQS"}) {
+	if !reflect.DeepEqual(upper, []string{"CINO", "CAT", "ABC"}) {
 		t.Errorf("UPPER: got %v", upper)
 	}
 
 	lower := ApplyCasing(words, 3)
-	if !reflect.DeepEqual(lower, []string{"apple", "banana", "pqs"}) {
+	if !reflect.DeepEqual(lower, []string{"cino", "cat", "abc"}) {
 		t.Errorf("lower: got %v", lower)
 	}
 }
@@ -192,19 +192,19 @@ func TestParseNumberRanges(t *testing.T) {
 }
 
 func TestDedupWords(t *testing.T) {
-	raw := []string{"apple", "banana", "apple", "  cherry  ", "banana", ""}
+	raw := []string{"cino", "cat", "cino", "  ABC  ", "cat", ""}
 	got := DedupWords(raw)
-	want := []string{"apple", "banana", "cherry"}
+	want := []string{"cino", "cat", "ABC"}
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("DedupWords(%v) = %v, want %v", raw, got, want)
 	}
 }
 
 func TestDedupWordsBOM(t *testing.T) {
-	raw := []string{"\ufeffapple", "banana"}
+	raw := []string{"\ufeffcino", "cat"}
 	got := DedupWords(raw)
-	if len(got) != 2 || got[0] != "apple" {
-		t.Errorf("DedupWords with BOM: got %v, want [apple banana]", got)
+	if len(got) != 2 || got[0] != "cino" {
+		t.Errorf("DedupWords with BOM: got %v, want [cino cat]", got)
 	}
 }
 

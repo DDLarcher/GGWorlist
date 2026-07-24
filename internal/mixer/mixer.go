@@ -497,10 +497,10 @@ func Run(reader *bufio.Reader, outDir string, maxBytes uint64) {
 	}
 
 	casingOptions := []string{
-		"PascalCase (AppleBanana)",
-		"camelCase (appleBanana)",
-		"ALL CAPS (APPLEBANANA)",
-		"all lowercase (applebanana)",
+		"PascalCase (CinoCat)",
+		"camelCase (cinoCat)",
+		"ALL CAPS (CINOCAT)",
+		"all lowercase (cinocat)",
 	}
 	casingIdxs := ui.PromptMultiMenu(reader, "Choose casing modes (select all you want)", casingOptions, []int{0, 1, 2, 3})
 	if len(casingIdxs) == 0 {
