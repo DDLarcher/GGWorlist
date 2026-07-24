@@ -381,6 +381,10 @@ func (c *Config) EstimateOutputs() uint64 {
 }
 
 func (c *Config) Generate(outDir string) (uint64, int, time.Duration, error) {
+	return c.GenerateWithProgress(outDir, nil)
+}
+
+func (c *Config) GenerateWithProgress(outDir string, progressFn func(written uint64, files int)) (uint64, int, time.Duration, error) {
 	c.Display()
 	fmt.Println()
 	fmt.Println(ui.Colorize(ui.Green, "Generating..."))
@@ -413,7 +417,11 @@ func (c *Config) Generate(outDir string) (uint64, int, time.Duration, error) {
 			return
 		}
 		if written%ui.ProgressInterval() == 0 {
-			fmt.Fprintf(os.Stderr, "\rWritten: %d  File #%d", written, fw.Files)
+			if progressFn != nil {
+				progressFn(written, fw.Files)
+			} else {
+				fmt.Fprintf(os.Stderr, "\rWritten: %d  File #%d", written, fw.Files)
+			}
 		}
 	}
 

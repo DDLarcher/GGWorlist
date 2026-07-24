@@ -7,12 +7,15 @@ import (
 	"os"
 	"strings"
 
+	tea "github.com/charmbracelet/bubbletea"
+
 	"wordlist-generator/internal/mixer"
 	"wordlist-generator/internal/numeric"
+	"wordlist-generator/internal/tui"
 	"wordlist-generator/internal/ui"
 )
 
-const version = "1.0.0"
+const version = "1.1.0"
 
 func main() {
 	mode := flag.String("mode", "", "Mode: 'mixer' or 'numeric'")
@@ -31,17 +34,21 @@ func main() {
 
 	ui.SetNoColor(*noColor)
 
-	ui.PrintLogo()
-	fmt.Println()
-	fmt.Println(ui.Colorize(ui.Cyan+ui.Bold, "  Wordlist Generator"))
-	fmt.Println()
-
 	if *mode != "" && *outDir != "" {
 		runNonInteractive(*mode, *outDir, *maxGB, *words, *length)
 		return
 	}
 
 	runInteractive()
+}
+
+func runInteractive() {
+	m := tui.New()
+	p := tea.NewProgram(m, tea.WithAltScreen())
+	if _, err := p.Run(); err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		os.Exit(1)
+	}
 }
 
 func runNonInteractive(mode, outDir string, maxGB float64, words string, length int) {
@@ -115,28 +122,4 @@ func runNumericNonInteractive(reader *bufio.Reader, outDir string, maxBytes uint
 		os.Exit(1)
 	}
 	numeric.RunNonInteractive(outDir, maxBytes, length)
-}
-
-func runInteractive() {
-	reader := bufio.NewReader(os.Stdin)
-
-	modeOptions := []string{
-		"Word mixer (combine your words with casings + numbers + special chars)",
-		"Numeric generator (ALL digit combos of length n, no 3 consecutive)",
-	}
-	modeIdx := ui.PromptMenu(reader, "Choose mode", modeOptions, 0)
-
-	outDir := ui.ChooseOutputDir(reader)
-	if !ui.ConfirmDir(reader, outDir) {
-		return
-	}
-
-	maxBytes := ui.ChooseMaxGB(reader)
-
-	switch modeIdx {
-	case 0:
-		mixer.Run(reader, outDir, maxBytes)
-	case 1:
-		numeric.Run(reader, outDir, maxBytes)
-	}
 }

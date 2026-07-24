@@ -33,6 +33,10 @@ func CountValid(n int) uint64 {
 }
 
 func RunNonInteractive(outDir string, maxBytes uint64, n int) {
+	RunNonInteractiveWithProgress(outDir, maxBytes, n, nil)
+}
+
+func RunNonInteractiveWithProgress(outDir string, maxBytes uint64, n int, progressFn func(written uint64, files int)) {
 	total := countValid(n)
 	bytesPerWord := uint64(n + 1)
 
@@ -90,8 +94,12 @@ func RunNonInteractive(outDir string, maxBytes uint64, n int) {
 			}
 			written++
 			if written%progressEvery == 0 {
-				fmt.Fprintf(os.Stderr, "\rWritten: %d / %d (%.1f%%)  File #%d",
-					written, total, float64(written)/float64(total)*100, fw.Files)
+				if progressFn != nil {
+					progressFn(written, fw.Files)
+				} else {
+					fmt.Fprintf(os.Stderr, "\rWritten: %d / %d (%.1f%%)  File #%d",
+						written, total, float64(written)/float64(total)*100, fw.Files)
+				}
 			}
 			if maxBytes > 0 && fw.CurSize > maxBytes {
 				stopped = true

@@ -28,15 +28,18 @@ const Logo = `
                                                `
 
 const (
-	Reset   = "\x1b[0m"
-	Red     = "\x1b[31m"
-	Green   = "\x1b[32m"
-	Yellow  = "\x1b[33m"
-	Blue    = "\x1b[34m"
-	Magenta = "\x1b[35m"
-	Cyan    = "\x1b[36m"
-	White   = "\x1b[37m"
-	Bold    = "\x1b[1m"
+	Reset      = "\x1b[0m"
+	Red        = "\x1b[31m"
+	Green      = "\x1b[32m"
+	BrightGreen = "\x1b[92m"
+	NeonGreen  = "\x1b[38;2;34;204;255m"
+	NeonGreenBg = "\x1b[48;2;0;0;0m"
+	White      = "\x1b[37m"
+	Yellow     = "\x1b[33m"
+	Blue       = "\x1b[34m"
+	Magenta    = "\x1b[35m"
+	Cyan       = "\x1b[36m"
+	Bold       = "\x1b[1m"
 )
 
 var noColor = false
@@ -300,10 +303,6 @@ func PadRight(s string, width int) string {
 	return s + strings.Repeat(" ", width-len(s))
 }
 
-func boxLine(content string) string {
-	return Colorize(Blue, "|") + " " + content + " " + Colorize(Blue, "|")
-}
-
 type FileWriter struct {
 	Dir        string
 	Num        int
@@ -411,23 +410,32 @@ func PrintSummary(written uint64, files int, elapsed time.Duration, outDir strin
 		valueWidth = maxFileNameLen
 	}
 
-	innerWidth := labelWidth + 2 + valueWidth + 2
-	top := Colorize(Blue, " " + strings.Repeat("_", innerWidth+2) + " ")
-	bottom := Colorize(Blue, " " + strings.Repeat("-", innerWidth+2) + " ")
+	innerWidth := labelWidth + 2 + valueWidth
+	g := NeonGreen + NeonGreenBg
+	gb := NeonGreen + NeonGreenBg + Bold
 
-	fmt.Println(top)
-	fmt.Println(boxLine(Colorize(Magenta+Bold, PadRight("GENERATION COMPLETE", innerWidth))))
-	fmt.Println(Colorize(Blue, "|") + strings.Repeat(" ", innerWidth+2) + Colorize(Blue, "|"))
+	top := Colorize(g, " ┌" + strings.Repeat("─", innerWidth) + "┐")
+	bottom := Colorize(g, " └" + strings.Repeat("─", innerWidth) + "┘")
+	bar := Colorize(g, "│")
 
-	for _, s := range stats {
-		label := Colorize(Yellow, PadRight(s[0], labelWidth))
-		value := Colorize(Cyan+Bold, s[1])
-		fmt.Println(boxLine(label + "  " + value + strings.Repeat(" ", innerWidth-labelWidth-len(s[1])-2)))
+	padRow := func(content string) string {
+		return bar + " " + PadRight(content, innerWidth) + " " + bar
 	}
 
-	fmt.Println(Colorize(Blue, "|") + strings.Repeat(" ", innerWidth+2) + Colorize(Blue, "|"))
-	fmt.Println(boxLine(Colorize(Magenta+Bold, PadRight("OUTPUT FILES", innerWidth))))
-	fmt.Println(Colorize(Blue, "|") + strings.Repeat(" ", innerWidth+2) + Colorize(Blue, "|"))
+	fmt.Println(top)
+	fmt.Println(padRow(Colorize(gb, "Generation Complete")))
+	fmt.Println(padRow(""))
+
+	for _, s := range stats {
+		label := PadRight(s[0], labelWidth)
+		value := s[1]
+		row := label + "  " + Colorize(gb, value)
+		fmt.Println(padRow(row))
+	}
+
+	fmt.Println(padRow(""))
+	fmt.Println(padRow(Colorize(gb, "Output Files")))
+	fmt.Println(padRow(""))
 
 	entries, _ := os.ReadDir(outDir)
 	fileCount := 0
@@ -437,18 +445,13 @@ func PrintSummary(written uint64, files int, elapsed time.Duration, outDir strin
 			if err != nil {
 				continue
 			}
-			name := Colorize(White, PadRight(e.Name(), 20))
-			size := Colorize(Cyan, FormatBytes(uint64(info.Size())))
-			pad := innerWidth - 20 - len(FormatBytes(uint64(info.Size()))) - 2
-			if pad < 0 {
-				pad = 0
-			}
-			fmt.Println(boxLine(name + "  " + size + strings.Repeat(" ", pad)))
+			row := PadRight(e.Name(), 20) + "  " + PadRight(FormatBytes(uint64(info.Size())), valueWidth-22)
+			fmt.Println(padRow(row))
 			fileCount++
 		}
 	}
 	if fileCount == 0 {
-		fmt.Println(boxLine(Colorize(Red, PadRight("(no files found)", innerWidth))))
+		fmt.Println(padRow("(no files found)"))
 	}
 
 	fmt.Println(bottom)
