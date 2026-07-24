@@ -126,7 +126,7 @@ Launches a full-screen interactive TUI with keyboard navigation:
 
 ```
 Mode:           Word mixer
-Words:          Daniele Suzanne PQS
+Words:          Cino Cat ABC
 Casings:        PascalCase, ALL CAPS
 Numbers:        1-100, 1900-2030
 Specials:       yes (max 2 chars)
@@ -136,11 +136,11 @@ Max length cap: 30
 
 Sample output:
 ```
-DanieleSuzanne
-DanieleSuzanne!
-SuzannePQS!?
-DanieleSuzannePQS
-DANIELESUZANNE2026$
+CinoCat
+CinoCat!
+CatABC!?
+CinoCatABC
+CinoCat2026$
 ...
 ```
 
